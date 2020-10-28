@@ -1,0 +1,27 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.4.10'
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'com.xcporter.jpkg' version '0.0.1'
+}
+
+group 'com.xcporter'
+version '0.0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    compileOnly gradleApi()
+}
+
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'com.xcporter.jpkg'
+            implementationClass = 'com.xcporter.jpkg.JpkgPlugin'
+        }
+    }
+}
