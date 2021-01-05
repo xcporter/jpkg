@@ -1,17 +1,12 @@
 package com.xcporter.jpkg
 
-import com.xcporter.jpkg.tasks.Configure
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.internal.impldep.org.eclipse.jgit.lib.Repository
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.bundling.Jar
 
 class JpkgPlugin : Plugin<Project> {
-    companion object {
-        var version: String? = null
-        var vhash: String? = null
-        var hash: String? = null
-        var multiProjectBuild = false
-    }
     override fun apply(proj: Project) {
         proj.plugins.apply(JavaPlugin::class.java)
         val java = proj.convention.getPlugin(JavaPluginConvention::class.java)
@@ -34,25 +29,51 @@ class JpkgPlugin : Plugin<Project> {
 
         proj.tasks.register("listConfigurations") {
             it.group = "jpkg"
+            java.sourceSets.getByName("main").output.forEach {
+                println(it.path)
+            }
         }
 
-//        proj.tasks.create("add tasks") {
-//            multiProjectBuild = proj.subprojects.isNotEmpty()
-//            if (multiProjectBuild) {
-//                println("Multiproject build detected: applying package directives to subprojects")
-//                proj.subprojects.forEach {
-//                    it.tasks.create("testTTT") {
-//                        println("THIS TASK REALLY WORKS!")
-//                        it.group = "jpkg"
-//                    }
-//                }
-//            } else {
-//                println("Single project build detected")
-//                proj.tasks.create("testTTT") {
-//                    println("THIS TASK REALLY WORKS!")
-//                    it.group = "jpkg"
-//                }
-//            }
-//        }
+
+        if (proj.subprojects.isNotEmpty()) {
+            proj.subprojects.forEach { sproj ->
+                val ext = sproj.extensions.getByType(JpkgExtension::class.java)
+                sproj.plugins.apply(JavaPlugin::class.java)
+                val sJava = sproj.convention.getPlugin(JavaPluginConvention::class.java)
+                sproj.tasks.register("executableJar", Jar::class.java) {
+                    it.group = "jpkg"
+                    it.dependsOn("gitVersion")
+                    it.dependsOn("jar")
+                    println(sproj.version)
+                    it.manifest {
+                        it.attributes(mapOf(
+                            "Main-Class" to (ext.mainClass ?: "")
+                        ))
+                    }
+                    it.from(sJava.sourceSets.getByName("main").output.filter{ it.exists() }.map { if(it.isDirectory) it else sproj.zipTree(it) })
+                    it.from(sproj.configurations.getByName("runtimeClasspath").map { if(it.isDirectory) it else sproj.zipTree(it) })
+                }
+                sproj.tasks.register("checkVersion") {
+                    it.group = "jpkg"
+                    it.dependsOn("gitVersion")
+                    it.doFirst {
+                        println(sproj.version)
+                    }
+                }
+            }
+        } else {
+            proj.tasks.register("executableJar", Jar::class.java) {
+                it.group = "jpkg"
+                it.dependsOn("gitVersion")
+                it.dependsOn("jar")
+                it.manifest {
+                    it.attributes(mapOf(
+                        "Main-Class" to extension.mainClass
+                    ))
+                }
+                it.from(java.sourceSets.getByName("main").output.filter{ it.exists() }.map { if(it.isDirectory) it else proj.zipTree(it) })
+                it.from(proj.configurations.getByName("runtimeClasspath").map { if(it.isDirectory) it else proj.zipTree(it) })
+            }
+        }
     }
 }
