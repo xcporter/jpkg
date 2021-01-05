@@ -13,7 +13,26 @@ class JpkgPlugin : Plugin<Project> {
         var multiProjectBuild = false
     }
     override fun apply(proj: Project) {
-        proj.tasks.register("configure", Configure::class.java) {
+        proj.plugins.apply(JavaPlugin::class.java)
+        val java = proj.convention.getPlugin(JavaPluginConvention::class.java)
+
+        proj.allprojects.forEach {
+            it.extensions.create("jpkg", JpkgExtension::class.java)
+            it.tasks.register("gitVersion") {
+                val ext = it.project.extensions.getByType(JpkgExtension::class.java)
+                if (ext.gitVersion) {
+                    it.project.version = try {
+                        GitParser(it.project.file("./.git")).formatVersion()
+                    } catch(e: Throwable) {
+                        GitParser(it.project.rootProject.file("./.git")).formatVersion()
+                    }
+                }
+            }
+        }
+
+        val extension = proj.extensions.getByType(JpkgExtension::class.java)
+
+        proj.tasks.register("listConfigurations") {
             it.group = "jpkg"
         }
 
