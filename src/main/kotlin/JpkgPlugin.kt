@@ -16,10 +16,11 @@ class JpkgPlugin : Plugin<Project> {
         val java = proj.convention.getPlugin(JavaPluginConvention::class.java)
         val app = proj.convention.getPlugin(ApplicationPluginConvention::class.java)
 
-        proj.allprojects.forEach {
-            it.extensions.create("jpkg", JpkgExtension::class.java)
-            it.tasks.register("gitVersion") {
+        proj.allprojects.forEach { p ->
+            p.extensions.create("jpkg", JpkgExtension::class.java)
+            p.tasks.register("gitVersion") {
                 val ext = it.project.extensions.getByType(JpkgExtension::class.java)
+
                 if (ext.useVersionFromGit) {
                     it.project.version = try {
                         GitParser(it.project.file("./.git")).formatVersion()
@@ -45,15 +46,17 @@ class JpkgPlugin : Plugin<Project> {
                         sub.tasks.register("executableJar", Jar::class.java) {
                             it.group = "jpkg"
                             it.dependsOn(sub.tasks.getByName("gitVersion"))
-                            it.archiveFileName.set((ext.packageName ?: "${sub.rootProject.name}-${sub.name}-${sub.version}") + ".jar")
+                            it.dependsOn(sub.tasks.getByName("classes"))
+                            it.archiveFileName.set((ext.packageName ?: "${sub.rootProject.name}-${sub.name}${if ((sub.version as String) != "unspecified") "-${sub.version}" else ""}") + ".jar")
                             it.destinationDirectory.set(sproj.file(sproj.buildDir.absolutePath + "/jpkg"))
                             it.manifest {
                                 it.attributes(mapOf(
                                     "Main-Class" to (sApp.mainClassName.takeUnless { it.isNullOrBlank() } ?: ext.mainClass)
                                 ))
                             }
-                            it.from(sJava.sourceSets.getByName("main").output.filter{ it.exists() }.map { if(it.isDirectory) it else sproj.zipTree(it) })
+                            it.from(sJava.sourceSets.getByName("main").output.filter { it.exists() }.map { if(it.isDirectory) it else sproj.zipTree(it) })
                             it.from(sproj.configurations.getByName("runtimeClasspath").map { if(it.isDirectory) it else sproj.zipTree(it) })
+                            it.doFirst { println("${sub.name} version: ${sub.version}") }
                         }
                     }
                 }
@@ -64,6 +67,7 @@ class JpkgPlugin : Plugin<Project> {
                     main.tasks.register("executableJar", Jar::class.java) {
                         it.group = "jpkg"
                         it.dependsOn("gitVersion")
+                        it.dependsOn("classes")
                         it.archiveFileName.set((extension.packageName ?: "${main.name}-${main.version}") + ".jar")
                         it.destinationDirectory.set(proj.file(proj.buildDir.absolutePath + "/jpkg"))
                         it.manifest {
