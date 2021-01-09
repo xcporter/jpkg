@@ -55,7 +55,7 @@ open class JPackageTask : DefaultTask() {
         with (acc) {
             ext.packageName?.let {
                 add(JPackageArgs.NAME.arg)
-                add(it + ext.appVersion)
+                add(it)
             }
             ext.copyright?.let {
                 add(JPackageArgs.COPYRIGHT.arg)

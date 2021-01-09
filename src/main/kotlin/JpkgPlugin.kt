@@ -57,7 +57,7 @@ class JpkgPlugin : Plugin<Project> {
                             it.from(subproj.configurations.getByName("runtimeClasspath").map { if(it.isDirectory) it else subproj.zipTree(it) })
                         }
                     }
-                    if (JPackageTask.checkJpackage() &&(!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank())) {
+                    if (JPackageTask.checkJpackage() && (!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank())) {
                         sub.tasks.register("jpackageRun", JPackageTask::class.java)
                     }
                 }
@@ -80,7 +80,7 @@ class JpkgPlugin : Plugin<Project> {
                         it.from(proj.configurations.getByName("runtimeClasspath").map { if(it.isDirectory) it else proj.zipTree(it) })
                     }
                 }
-                if (JPackageTask.checkJpackage()) {
+                if (JPackageTask.checkJpackage() && (!extension.mainClass.isNullOrBlank() || !app.mainClassName.isNullOrBlank())) {
                     main.tasks.register("jpackageRun", JPackageTask::class.java)
                 }
             }

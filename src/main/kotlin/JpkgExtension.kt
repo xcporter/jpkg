@@ -13,17 +13,17 @@ open class JpkgExtension(val project: Project) {
     var mainClass: String? = null
 
 //    Jpackage Args
-    internal var appVersion: String? = null
-    internal var description: String? = null
-    internal var destination: String? = null
-    internal var copyright: String? = null
-    internal var vendor: String? = null
-    internal var fileAssociations: String? = null
-    internal var icon: String? = null
-    internal var type: DistType? = null
-    internal var resourceDir: String? = null
-    internal var menuGroup: String? = null
-    internal var shortcut: Boolean? = null
+    var appVersion: String? = null
+    var description: String? = null
+    var destination: String? = null
+    var copyright: String? = null
+    var vendor: String? = null
+    var fileAssociations: String? = null
+    var icon: String? = null
+    var type: DistType? = null
+    var resourceDir: String? = null
+    var menuGroup: String? = null
+    var shortcut: Boolean? = null
 
 //    Platform Parameters
     val mac = PlatformConfiguration.Mac()
