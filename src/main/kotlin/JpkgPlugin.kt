@@ -1,5 +1,8 @@
 package com.xcporter.jpkg
 
+import com.xcporter.jpkg.CmdBuilder.checkJpackage
+import com.xcporter.jpkg.tasks.ExecutableJar
+import com.xcporter.jpkg.tasks.GitVersion
 import com.xcporter.jpkg.tasks.JPackageTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -9,6 +12,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
 
+// todo build all task
 class JpkgPlugin : Plugin<Project> {
     override fun apply(proj: Project) {
         proj.plugins.apply(JavaPlugin::class.java)
@@ -17,47 +21,24 @@ class JpkgPlugin : Plugin<Project> {
         val app = proj.convention.getPlugin(ApplicationPluginConvention::class.java)
 
         proj.allprojects.forEach { p ->
-            val ext = p.extensions.create("jpkg", JpkgExtension::class.java, p)
-            p.tasks.register("gitVersion") {
-                it.group = "jpkg"
-                if (ext.useVersionFromGit) {
-                    it.project.version = try {
-                        GitParser(it.project.file("./.git")).formatVersion()
-                    } catch(e: Throwable) {
-                        GitParser(it.project.rootProject.file("./.git")).formatVersion()
-                    }
-                }
-            }
+            p.extensions.create("jpkg", JpkgExtension::class.java, p)
+            p.plugins.apply(JavaPlugin::class.java)
+            p.plugins.apply(ApplicationPlugin::class.java)
+            p.tasks.register("gitVersion", GitVersion::class.java)
         }
 
-        val extension = proj.extensions.getByType(JpkgExtension::class.java)
+        val extension = proj.jpkgExtension()
 
         if (proj.subprojects.isNotEmpty()) {
             proj.subprojects.forEach { subproj ->
                 val ext = subproj.extensions.getByType(JpkgExtension::class.java)
-                subproj.plugins.apply(JavaPlugin::class.java)
-                subproj.plugins.apply(ApplicationPlugin::class.java)
-                val sJava = subproj.convention.getPlugin(JavaPluginConvention::class.java)
                 val sApp = subproj.convention.getPlugin(ApplicationPluginConvention::class.java)
 
                 subproj.afterEvaluate { sub ->
                     if (!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank()) {
-                        sub.tasks.register("executableJar", Jar::class.java) {
-                            it.group = "jpkg"
-                            it.dependsOn(sub.tasks.getByName("gitVersion"))
-                            it.dependsOn(sub.tasks.getByName("classes"))
-                            it.archiveFileName.set((ext.packageName ?: "${sub.rootProject.name}-${sub.name}${if ((sub.version as String) != "unspecified") "-${sub.version}" else ""}") + ".jar")
-                            it.destinationDirectory.set(subproj.file(subproj.buildDir.absolutePath + "/jpkg/jar"))
-                            it.manifest {
-                                it.attributes(mapOf(
-                                    "Main-Class" to (sApp.mainClassName.takeUnless { it.isNullOrBlank() } ?: ext.mainClass)
-                                ))
-                            }
-                            it.from(sJava.sourceSets.getByName("main").output.filter { it.exists() }.map { if(it.isDirectory) it else subproj.zipTree(it) })
-                            it.from(subproj.configurations.getByName("runtimeClasspath").map { if(it.isDirectory) it else subproj.zipTree(it) })
-                        }
+                        sub.tasks.register("executableJar", ExecutableJar::class.java)
                     }
-                    if (JPackageTask.checkJpackage() && (!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank())) {
+                    if (checkJpackage() && (!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank()) && (extension.type != null)) {
                         sub.tasks.register("jpackageRun", JPackageTask::class.java)
                     }
                 }
@@ -65,25 +46,16 @@ class JpkgPlugin : Plugin<Project> {
         } else {
             proj.afterEvaluate { main ->
                 if (!extension.mainClass.isNullOrBlank() || !app.mainClassName.isNullOrBlank()) {
-                    main.tasks.register("executableJar", Jar::class.java) {
-                        it.group = "jpkg"
-                        it.dependsOn("gitVersion")
-                        it.dependsOn("classes")
-                        it.archiveFileName.set((extension.packageName ?: "${main.name}-${main.version}") + ".jar")
-                        it.destinationDirectory.set(proj.file(proj.buildDir.absolutePath + "/jpkg/jar"))
-                        it.manifest {
-                            it.attributes(mapOf(
-                                "Main-Class" to (app.mainClassName.takeUnless { it.isNullOrBlank() } ?: extension.mainClass)
-                            ))
-                        }
-                        it.from(java.sourceSets.getByName("main").output.filter{ it.exists() }.map { if(it.isDirectory) it else proj.zipTree(it) })
-                        it.from(proj.configurations.getByName("runtimeClasspath").map { if(it.isDirectory) it else proj.zipTree(it) })
-                    }
+                    main.tasks.register("executableJar", ExecutableJar::class.java)
                 }
-                if (JPackageTask.checkJpackage() && (!extension.mainClass.isNullOrBlank() || !app.mainClassName.isNullOrBlank())) {
+                if (checkJpackage() && (!extension.mainClass.isNullOrBlank() || !app.mainClassName.isNullOrBlank()) && (extension.type != null)) {
                     main.tasks.register("jpackageRun", JPackageTask::class.java)
                 }
             }
         }
     }
+
+
 }
+
+internal fun Project.jpkgExtension() : JpkgExtension = this.extensions.getByType(JpkgExtension::class.java)
