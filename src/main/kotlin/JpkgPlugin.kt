@@ -1,16 +1,13 @@
 package com.xcporter.jpkg
 
 import com.xcporter.jpkg.CmdBuilder.checkJpackage
-import com.xcporter.jpkg.tasks.ExecutableJar
-import com.xcporter.jpkg.tasks.GitVersion
-import com.xcporter.jpkg.tasks.JPackageTask
+import com.xcporter.jpkg.tasks.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.tasks.bundling.Jar
 
 // todo build all task
 class JpkgPlugin : Plugin<Project> {
@@ -39,7 +36,12 @@ class JpkgPlugin : Plugin<Project> {
                         sub.tasks.register("executableJar", ExecutableJar::class.java)
                     }
                     if (checkJpackage() && (!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank()) && (extension.type != null)) {
-                        sub.tasks.register("jpackageRun", JPackageTask::class.java)
+                        sub.tasks.register("jpackageBuild", JPackageTask::class.java)
+                    }
+                    if(!extension.mac.signingIdentity.isNullOrBlank()) {
+                        sub.tasks.register("signArchive", SignArchive::class.java)
+                        sub.tasks.register("signedAppImage", SignedAppImage::class.java)
+                        sub.tasks.register("signedDmg", SignedDmg::class.java)
                     }
                 }
             }
@@ -50,6 +52,11 @@ class JpkgPlugin : Plugin<Project> {
                 }
                 if (checkJpackage() && (!extension.mainClass.isNullOrBlank() || !app.mainClassName.isNullOrBlank()) && (extension.type != null)) {
                     main.tasks.register("jpackageRun", JPackageTask::class.java)
+                }
+                if(!extension.mac.signingIdentity.isNullOrBlank()) {
+                    main.tasks.register("signArchive", SignArchive::class.java)
+                    main.tasks.register("signedAppImage", SignedAppImage::class.java)
+                    main.tasks.register("signedDmg", SignedDmg::class.java)
                 }
             }
         }
