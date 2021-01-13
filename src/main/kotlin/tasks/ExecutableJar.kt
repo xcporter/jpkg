@@ -1,7 +1,6 @@
 package com.xcporter.jpkg.tasks
 
 import com.xcporter.jpkg.jpkgExtension
-import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.bundling.Jar
@@ -14,7 +13,7 @@ open class ExecutableJar : Jar() {
      group = "jpkg"
      dependsOn("gitVersion")
      dependsOn("classes")
-     archiveFileName.set((extension.packageName ?: "${project.name}-${project.version}") + ".jar")
+     archiveFileName.set(("${project.name}-${project.version}") + ".jar")
      destinationDirectory.set(project.file(project.buildDir.absolutePath + "/jpkg/jar"))
      manifest {
          it.attributes(mapOf(
