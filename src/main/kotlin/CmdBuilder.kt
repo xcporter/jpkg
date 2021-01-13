@@ -1,6 +1,5 @@
 package com.xcporter.jpkg
 
-import com.xcporter.jpkg.tasks.JPackageTask
 import org.gradle.api.Project
 import org.gradle.internal.os.OperatingSystem
 import java.io.File
@@ -11,6 +10,7 @@ object CmdBuilder {
             it.commandLine = cmd
             it.standardOutput = System.out
         }
+        println(cmd.joinToString(" "))
     }
 
     fun getJpackage() : String {
@@ -29,10 +29,50 @@ object CmdBuilder {
         acc.addAll(
             listOf(
                 "codesign",
+                "--preserve-metadata=entitlements",
+                "-f",
                 "--options",
                 "runtime",
+                "-s",
                 ext.mac.signingIdentity ?: "",
                 path
+            )
+        )
+        return acc
+    }
+
+    fun buildJpackageImageCommand(project: Project) : List<String> {
+        val ext = project.extensions.getByType(JpkgExtension::class.java)
+        val acc = mutableListOf<String>(getJpackage())
+        with (acc) {
+            ext.packageName?.let {
+                add(JPackageArgs.NAME.arg)
+                add(it)
+            }
+            ext.copyright?.let {
+                add(JPackageArgs.COPYRIGHT.arg)
+                add(it)
+            }
+            ext.description?.let {
+                add(JPackageArgs.DESCRIPTION.arg)
+                add(it)
+            }
+            ext.vendor?.let {
+                add(JPackageArgs.VENDOR.arg)
+                add(it)
+            }
+            ext.resourceDir?.let {
+                add(JPackageArgs.RESOURCE_DIR.arg)
+                add(it)
+            }
+        }
+
+        acc.addAll(
+            listOf(
+                JPackageArgs.TYPE.arg, JpkgExtension.DistType.DMG.arg,
+                JPackageArgs.VERSION.arg, (ext.appVersion ?: project.version as String),
+                JPackageArgs.DESTINATION.arg, ext.destination!!,
+                JPackageArgs.Mac.APP_IMAGE.arg, "${project.buildDir.path}/jpkg/mac/${ext.packageName}.app"
             )
         )
         return acc

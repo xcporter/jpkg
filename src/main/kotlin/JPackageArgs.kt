@@ -12,10 +12,14 @@ enum class JPackageArgs(val arg: String) {
     ICON("--icon"),
     INPUT("--input"),
     MAIN_JAR("--main-jar"),
-    FILE_ASSOCIATIONS("--file-associations");
+    FILE_ASSOCIATIONS("--file-associations"),
+    RESOURCE_DIR("--resource-dir");
 
     enum class Mac(val arg: String) {
-        NAME("--mac-package-name")
+        NAME("--mac-package-name"),
+        IDENTITY("--mac-signing-key-user-name"),
+        SIGN("--mac-sign"),
+        APP_IMAGE("--app-image")
     }
     enum class Windows(val arg: String) {
         DIR_CHOOSER("--win-dir-chooser"),
