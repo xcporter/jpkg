@@ -5,8 +5,18 @@ sealed class PlatformConfiguration {
     var icon: String? = null
     var name: String? = null
 
+    fun type(new: String) {
+        JpkgExtension.DistType.values()
+            .firstOrNull { it.arg == new }
+            ?.let {
+                type = it
+            }
+    }
+
     class Mac() : PlatformConfiguration() {
+        var sign: Boolean = false
         var signingIdentity: String? = null
+        var bundleName: String? = null
         var userName: String? = null
         var password: String? = null
     }
