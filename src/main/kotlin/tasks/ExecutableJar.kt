@@ -1,6 +1,5 @@
 package com.xcporter.jpkg.tasks
 
-import com.xcporter.jpkg.GitParser
 import com.xcporter.jpkg.jpkgExtension
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPluginConvention
@@ -10,12 +9,8 @@ open class ExecutableJar : Jar() {
     val extension = project.jpkgExtension()
     val java = project.convention.getPlugin(JavaPluginConvention::class.java)
     val app = project.convention.getPlugin(ApplicationPluginConvention::class.java)
-    private val versionSetting = if (extension.useVersionFromGit) {
-        try {
-            "-${GitParser(project.file("./.git")).formatVersion()}"
-        } catch(e: Throwable) {
-           "-${ GitParser(project.rootProject.file("./.git")).formatVersion()}"
-        }
+    private val versionSetting = if (extension.useVersionFromGit && extension.gitVersion != null) {
+        "-${extension.gitVersion}"
     } else {
         if (project.version != "unspecified") "-${project.version}" else ""
     }

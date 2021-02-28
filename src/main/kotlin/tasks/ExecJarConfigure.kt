@@ -13,6 +13,7 @@ open class ExecJarConfigure : DefaultTask() {
     init {
         group = "jpkg"
         dependsOn("classes")
+        dependsOn("gitVersion")
     }
 
     val java = project.convention.getPlugin(JavaPluginConvention::class.java)
