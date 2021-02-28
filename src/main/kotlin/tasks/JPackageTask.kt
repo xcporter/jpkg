@@ -2,13 +2,9 @@ package com.xcporter.jpkg.tasks
 
 import com.xcporter.jpkg.CmdBuilder
 import com.xcporter.jpkg.CmdBuilder.execute
-import com.xcporter.jpkg.JPackageArgs
 import com.xcporter.jpkg.JpkgExtension
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.TaskAction
-import org.gradle.internal.os.OperatingSystem
-import java.io.ByteArrayOutputStream
 import java.io.File
 
 open class JPackageTask : DefaultTask() {
@@ -21,6 +17,7 @@ open class JPackageTask : DefaultTask() {
 
     @TaskAction
     fun execute() {
+        ext.destination?.let { File(it).mkdirs() }
         val cmd = CmdBuilder.buildJpackageJarCommand(project)
         println(cmd.joinToString(" "))
         project.execute(cmd)

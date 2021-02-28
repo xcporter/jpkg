@@ -18,6 +18,7 @@ open class SignedAppImage : DefaultTask() {
     @TaskAction
     fun action() {
         project.jpkgExtension().type = JpkgExtension.DistType.MAC_APP
+        project.jpkgExtension().destination?.let { File(it).mkdirs() }
         val cmd = CmdBuilder.buildJpackageJarCommand(project)
         println(cmd.joinToString(" "))
         project.execute(cmd)
