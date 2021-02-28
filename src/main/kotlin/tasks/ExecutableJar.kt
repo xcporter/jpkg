@@ -22,15 +22,14 @@ open class ExecutableJar : Jar() {
 
     init {
         group = "jpkg"
-        dependsOn("classes")
+        dependsOn("execJarConfig")
         archiveFileName.set(("${project.name}$versionSetting") + ".jar")
         destinationDirectory.set(project.file(project.buildDir.absolutePath + "/jpkg/jar"))
         manifest {
             it.attributes(mapOf(
-                 "Main-Class" to (app.mainClassName.takeUnless { it.isNullOrBlank() } ?: extension.mainClass)
+                "Main-Class" to (app.mainClassName.takeUnless { it.isNullOrBlank() } ?: extension.mainClass)
             ))
         }
-        from(java.sourceSets.getByName("main").output.filter{ it.exists() }.map { if(it.isDirectory) it else project.zipTree(it) })
         from(project.configurations.getByName("runtimeClasspath").map { if(it.isDirectory) it else project.zipTree(it) })
     }
 }

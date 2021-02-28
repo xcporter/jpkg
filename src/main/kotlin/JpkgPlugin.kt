@@ -26,14 +26,17 @@ class JpkgPlugin : Plugin<Project> {
             p.parseEnv()
 
             p.tasks.register("gitVersion", GitVersion::class.java)
+            p.tasks.register("execJarConfig", ExecJarConfigure::class.java)
             p.tasks.register("checkConfiguration") {
                 it.group = "jpkg"
                 it.doFirst {
                     println("is JPackage: ${checkJpackage()}")
                     println(p.jpkgExtension().type?.arg)
                     println(p.jpkgExtension().mainClass)
+                    proj.configurations.forEach { println(it.name) }
+                    java.sourceSets.getByName("main").output.forEach { println("$it  ${it.exists()}") }
+                    println("\n\nEnvironment:")
                     p.jpkgExtension().env.forEach { t, u -> println("$t : $u") }
-
                 }
             }
         }

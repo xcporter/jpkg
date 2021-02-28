@@ -13,6 +13,11 @@ open class JpkgExtension(val project: Project) {
     val env = mutableMapOf<String, String>()
 //    Jpackage Args
     var appVersion: String? = null
+    var gitVersion: String? = try {
+        GitParser(project.file("./.git")).formatVersion()
+    } catch(e: Throwable) {
+        GitParser(project.rootProject.file("./.git")).formatVersion()
+    }
     var description: String? = null
     var destination: String? = null
     var copyright: String? = null
