@@ -9,19 +9,22 @@ object CmdBuilder {
         this.exec {
             it.commandLine = cmd
             it.standardOutput = System.out
+            it.errorOutput = System.err
         }
         println(cmd.joinToString(" "))
     }
 
     fun getJpackage() : String {
-        val home = System.getProperty("java.home") ?: throw Exception("Java Home is not set")
-        return with(home + File.separator + "bin" + File.separator + "jpackage") {
+        var home = System.getenv("JAVA_HOME") ?: throw Exception("Java Home is not set")
+        println("java_home: $home")
+        if (!home.endsWith(File.separator)) home = "$home${File.separator}"
+        return with(home + "bin${File.separator}${if(OperatingSystem.current().isWindows) "jpackage.exe" else "jpackage"}") {
             if(File(this).exists()) this
             else throw Exception("jpackage not found: is java home set to jdk 14 or higher?")
         }
     }
 
-    fun checkJpackage() = try { getJpackage(); true} catch(e: Throwable) { false }
+    fun checkJpackage() = try { getJpackage(); true} catch(e: Throwable) { println(e); false }
 
     fun buildCodesignCommand(path: String, project: Project) : List<String> {
         val acc = mutableListOf<String>()
@@ -65,6 +68,7 @@ object CmdBuilder {
                 add(JPackageArgs.RESOURCE_DIR.arg)
                 add(it)
             }
+            if (ext.verbose) add("--verbose")
         }
 
         acc.addAll(
@@ -87,7 +91,7 @@ object CmdBuilder {
                 JPackageArgs.TYPE.arg, ext.type!!.arg,
                 JPackageArgs.VERSION.arg, (ext.appVersion ?: project.version as String),
                 JPackageArgs.INPUT.arg, project.file(project.buildDir.absolutePath + "/jpkg/jar").absolutePath,
-                JPackageArgs.MAIN_JAR.arg, project.file(project.buildDir.absolutePath + "/jpkg/jar").listFiles().first().name,
+                JPackageArgs.MAIN_JAR.arg, project.file(project.buildDir.absolutePath + "/jpkg/jar").listFiles()?.first()?.name ?: "",
                 JPackageArgs.DESTINATION.arg, ext.destination!!
             )
         )
@@ -95,15 +99,15 @@ object CmdBuilder {
         with (acc) {
             ext.packageName?.let {
                 add(JPackageArgs.NAME.arg)
-                add(it)
+                acc.add(it)
             }
             ext.copyright?.let {
                 add(JPackageArgs.COPYRIGHT.arg)
-                add(it)
+                add("\"$it\"")
             }
             ext.description?.let {
                 add(JPackageArgs.DESCRIPTION.arg)
-                add(it)
+                add("\"$it\"")
             }
             ext.icon?.let {
                 add(JPackageArgs.ICON.arg)
@@ -111,22 +115,27 @@ object CmdBuilder {
             }
             ext.vendor?.let {
                 add(JPackageArgs.VENDOR.arg)
-                add(it)
+                add("\"$it\"")
             }
             ext.fileAssociations?.let {
                 add(JPackageArgs.FILE_ASSOCIATIONS.arg)
                 add(it)
             }
+            ext.resourceDir?.let {
+                add(JPackageArgs.RESOURCE_DIR.arg)
+                add(it)
+            }
+            if (ext.verbose) add("--verbose")
         }
 //        Platform Config
         when {
             OperatingSystem.current().isMacOsX -> {
                 ext.mac.name?.let {
                     acc.add(JPackageArgs.Mac.NAME.arg)
-                    acc.add(it)
+                    acc.add("$it")
                 } ?: ext.packageName?.let {
                     acc.add(JPackageArgs.Mac.NAME.arg)
-                    acc.add(it)
+                    acc.add("$it")
                 }
             }
             OperatingSystem.current().isWindows -> {
@@ -137,37 +146,34 @@ object CmdBuilder {
                     acc.add(JPackageArgs.Windows.SHORTCUT.arg)
                 ext.win.menuGroup?.let {
                     acc.add(JPackageArgs.Windows.MENU_GROUP.arg)
-                    acc.add(it)
+                    acc.add("\"$it\"")
                 } ?: ext.menuGroup?.let {
                     acc.add(JPackageArgs.Windows.MENU_GROUP.arg)
-                    acc.add(it)
+                    acc.add("\"$it\"")
                 }
             }
             OperatingSystem.current().isLinux -> {
                 ext.linux.name?.let {
                     acc.add(JPackageArgs.Linux.NAME.arg)
-                    acc.add(it)
-                } ?: ext.packageName?.let {
-                    acc.add(JPackageArgs.Linux.NAME.arg)
-                    acc.add(it)
+                    acc.add("\"$it\"")
                 }
                 ext.linux.maintainer?.let {
                     acc.add(JPackageArgs.Linux.MAINTAINER.arg)
-                    acc.add(it)
+                    acc.add("\"$it\"")
                 } ?: ext.vendor?.let {
                     acc.add(JPackageArgs.Linux.MAINTAINER.arg)
-                    acc.add(it)
+                    acc.add("\"$it\"")
                 }
                 ext.linux.menuGroup?.let {
                     acc.add(JPackageArgs.Linux.MENU_GROUP.arg)
-                    acc.add(it)
+                    acc.add("\"$it\"")
                 } ?: ext.menuGroup?.let {
                     acc.add(JPackageArgs.Linux.MENU_GROUP.arg)
-                    acc.add(it)
+                    acc.add("\"$it\"")
                 }
                 ext.linux.packageDependencies?.let {
                     acc.add(JPackageArgs.Linux.DEPENDENCIES.arg)
-                    acc.addAll(it)
+                    acc.add(it.joinToString(", "))
                 }
                 ext.linux.release?.let {
                     acc.add(JPackageArgs.Linux.RELEASE.arg)
@@ -178,7 +184,7 @@ object CmdBuilder {
                 }
                 ext.linux.category?.let {
                     acc.add(JPackageArgs.Linux.CATEGORY.arg)
-                    acc.add(it)
+                    acc.add("\"$it\"")
                 }
                 if (ext.linux.shortcut == true || (ext.linux.shortcut == null && ext.shortcut == true))
                     acc.add(JPackageArgs.Linux.SHORTCUT.arg)
