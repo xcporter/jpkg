@@ -1,9 +1,13 @@
 package com.xcporter.jpkg
 
-sealed class PlatformConfiguration {
+import org.gradle.api.Project
+
+sealed class PlatformConfiguration(val project: Project) {
     var type: JpkgExtension.DistType? = null
     var icon: String? = null
     var name: String? = null
+    var fileAssociations: String? = null
+    var resourceDir: String? = null
 
     fun type(new: String) {
         JpkgExtension.DistType.values()
@@ -13,7 +17,9 @@ sealed class PlatformConfiguration {
             }
     }
 
-    class Mac() : PlatformConfiguration() {
+    fun env(name: String) : String? = project.jpkgExtension().env[name]
+
+    class Mac(project: Project) : PlatformConfiguration(project) {
         var sign: Boolean = false
         var signingIdentity: String? = null
         var bundleName: String? = null
@@ -21,7 +27,7 @@ sealed class PlatformConfiguration {
         var password: String? = null
     }
 
-    class Linux() : PlatformConfiguration() {
+    class Linux(project: Project) : PlatformConfiguration(project) {
         var menuGroup: String? = null
         var shortcut: Boolean? = true
         var maintainer: String? = null
@@ -30,7 +36,7 @@ sealed class PlatformConfiguration {
         var category: String? = null
     }
 
-    class Windows() : PlatformConfiguration() {
+    class Windows(project: Project) : PlatformConfiguration(project) {
         var winDirChooser: Boolean = true
         var winPerUser: Boolean = false
         var winMenu: Boolean = true

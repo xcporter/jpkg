@@ -8,6 +8,7 @@ import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import java.io.File
 
 // todo build all task
 class JpkgPlugin : Plugin<Project> {
@@ -21,7 +22,20 @@ class JpkgPlugin : Plugin<Project> {
             p.extensions.create("jpkg", JpkgExtension::class.java, p)
             p.plugins.apply(JavaPlugin::class.java)
             p.plugins.apply(ApplicationPlugin::class.java)
+
+            p.parseEnv()
+
             p.tasks.register("gitVersion", GitVersion::class.java)
+            p.tasks.register("checkConfiguration") {
+                it.group = "jpkg"
+                it.doFirst {
+                    println("is JPackage: ${checkJpackage()}")
+                    println(p.jpkgExtension().type?.arg)
+                    println(p.jpkgExtension().mainClass)
+                    p.jpkgExtension().env.forEach { t, u -> println("$t : $u") }
+
+                }
+            }
         }
 
         val extension = proj.jpkgExtension()
@@ -35,10 +49,10 @@ class JpkgPlugin : Plugin<Project> {
                     if (!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank()) {
                         sub.tasks.register("executableJar", ExecutableJar::class.java)
                     }
-                    if (checkJpackage() && (!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank()) && (extension.type != null)) {
+                    if (checkJpackage() && (!ext.mainClass.isNullOrBlank() || !sApp.mainClassName.isNullOrBlank()) && (ext.type != null)) {
                         sub.tasks.register("jpackageBuild", JPackageTask::class.java)
                     }
-                    if(!extension.mac.signingIdentity.isNullOrBlank()) {
+                    if(!ext.mac.signingIdentity.isNullOrBlank()) {
                         sub.tasks.register("signArchive", SignArchive::class.java)
                         sub.tasks.register("signedAppImage", SignedAppImage::class.java)
                         sub.tasks.register("signedDmg", SignedDmg::class.java)
@@ -51,7 +65,7 @@ class JpkgPlugin : Plugin<Project> {
                     main.tasks.register("executableJar", ExecutableJar::class.java)
                 }
                 if (checkJpackage() && (!extension.mainClass.isNullOrBlank() || !app.mainClassName.isNullOrBlank()) && (extension.type != null)) {
-                    main.tasks.register("jpackageRun", JPackageTask::class.java)
+                    main.tasks.register("jpackageBuild", JPackageTask::class.java)
                 }
                 if(!extension.mac.signingIdentity.isNullOrBlank()) {
                     main.tasks.register("signArchive", SignArchive::class.java)
@@ -62,6 +76,21 @@ class JpkgPlugin : Plugin<Project> {
         }
     }
 
+    fun Project.parseEnv() {
+        val ext = jpkgExtension()
+        File(rootProject.projectDir.path, ".env")
+            .takeIf { it.exists() }
+            ?.let {
+                it.readLines()
+                    .map { it.split("=") }
+                    .map { it.first() to it.last() }
+                    .toMap()
+                    .forEach {
+                        ext.env.put(it.key, it.value)
+                    }
+
+            }
+    }
 
 }
 
