@@ -35,6 +35,11 @@ open class SignArchive : DefaultTask() {
             ?.filter { it.extension == "dylib" }
             ?.forEach { project.execute(buildCodesignCommand(it.path, project)) }
 
+        File(tmp, "ws/schild/jave/native").takeIf { it.exists() }
+            ?.listFiles()
+            ?.filter { it.name.contains("osx") }
+            ?.forEach { project.execute(buildCodesignCommand(it.path, project)) }
+
         ZipUtility.zip("${project.buildDir.path}/jpkg/jar/tmp", original.path ?: "")
 
         project.execute(buildCodesignCommand(original.path, project))
