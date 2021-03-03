@@ -1,5 +1,5 @@
 # JPKG
-> Warning: This project is not complete, use at your own risk
+> Warning: This project is thoroughly tested , use at your own risk
 
 ### Gradle plugin for creating executable distributions
 
@@ -10,9 +10,8 @@
 ## Installation
 
 ```groovy
-// Not yet published to a public repository!
 plugins {
-    id 'com.xcporter.jpkg' version '0.0.1'
+    id 'com.xcporter.jpkg' version '0.0.4-beta'
 }
 ```
 
@@ -27,7 +26,7 @@ the project, or a value is supplied for `mainClass` in the configuration block.
 
 Apply last tag from git repo (plus beginning of current commit hash if different than tagged commit) to project version
 
-### `jpackageRun`
+### `jpackageBuild`
 
 Run jpackage command for current platform
 
