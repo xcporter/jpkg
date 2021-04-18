@@ -2,6 +2,7 @@ package com.xcporter.jpkg
 
 import org.gradle.api.Project
 import org.gradle.internal.os.OperatingSystem
+import java.io.ByteArrayOutputStream
 import java.io.File
 
 object CmdBuilder {
@@ -28,7 +29,7 @@ object CmdBuilder {
 
     fun buildCodesignCommand(path: String, project: Project) : List<String> {
         val acc = mutableListOf<String>()
-        val ext = project.extensions.getByType(JpkgExtension::class.java)
+        val ext = project.jpkgExtension()
         acc.addAll(
             listOf(
                 "codesign",
@@ -41,6 +42,7 @@ object CmdBuilder {
                 path
             )
         )
+        if (ext.deeplyVerbose) acc.add("--verbose")
         return acc
     }
 
@@ -68,7 +70,7 @@ object CmdBuilder {
                 add(JPackageArgs.RESOURCE_DIR.arg)
                 add(it)
             }
-            if (ext.verbose) add("--verbose")
+            if (ext.deeplyVerbose) add("--verbose")
         }
 
         acc.addAll(
@@ -125,7 +127,7 @@ object CmdBuilder {
                 add(JPackageArgs.RESOURCE_DIR.arg)
                 add(it)
             }
-            if (ext.verbose) add("--verbose")
+            if (ext.deeplyVerbose) add("--verbose")
         }
 //        Platform Config
         when {

@@ -24,7 +24,8 @@ open class JpkgExtension(val project: Project) {
     var resourceDir: String? = null
     var menuGroup: String? = null
     var shortcut: Boolean? = null
-    var verbose: Boolean = false
+    var verbose : Boolean = false
+    var deeplyVerbose: Boolean = false
 
 //    Platform Parameters
     val mac = PlatformConfiguration.Mac(project)

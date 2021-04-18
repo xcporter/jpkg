@@ -18,8 +18,7 @@ open class JPackageTask : DefaultTask() {
     @TaskAction
     fun execute() {
         ext.destination?.let { File(it).mkdirs() }
-        val cmd = CmdBuilder.buildJpackageJarCommand(project)
-        println(cmd.joinToString(" "))
+        val cmd = CmdBuilder.buildJpackageJar(project)
         project.execute(cmd)
     }
 }
