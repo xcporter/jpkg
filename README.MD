@@ -42,6 +42,15 @@ Builds and signs mac app image from signed jar file.
 
 Builds and signs dmg from the results of `signedAppImage`
 
+### `notarize`
+
+Submits to apple notarization server and staples if successful. Because this task waits 
+for the apple server before stapling, it may be idle for more than an hour. For this reason 
+I've left it independent of execution order, so you must manually make sure the `signedDmg` or 
+`signedAppImage` task has already run. 
+
+Secrets must be entered in build file or specified via a .env file and the `env()` function
+
 ## Configuration
 
 No package tasks will be created for your project unless a `mainClassName` is specified 
@@ -68,8 +77,17 @@ jpkg {
     vendor = "Your Name"
     copyright = "2021"
     description = "Your App Description"
+
+//    global menu-group; applies only to windows and linux
+    menuGroup = "Your Group"
     
-//  git  platform level configuration
+//    print all commands for outside utilities
+    verbose: Boolean = false
+    
+//    print all commands and pass verbose flag to all utilities
+    deeplyVerbose: Boolean = false
+
+//    Platform level configuration
 //    each can specify custom type, icon, or name per platform
 //    to configure type use function type() which accepts a string
 //    that's also a valid jpackage argument, otherwise platform defaults are:
@@ -79,12 +97,16 @@ jpkg {
     mac {
         name = "Mac Package Name (how it appears in menu bar)"
         icon = "path to icon"
-//        code sign and notarization configuration
+
+//      code sign and notarization configuration
         signingIdentity = "Your dev certificate identity"
         bundleName = "mac-package-identifier for notarization"
-        userName: String
-        password: String
-    }
+
+//      A function env() is available to parse in secrets stored in a file
+//        named '.env' stored in the project root, one per line with the form
+//        'USERNAME=*********'
+        userName = env('USERNAME')
+        password: env('PASSWORD')
     
     windows {
         winDirChooser: Boolean = true
@@ -106,4 +128,5 @@ jpkg {
 }
 ```
 
-Note: When working with the resourcesDir parameter, filenames must match the project name, following the format laid out in jpackage docs: https://docs.oracle.com/en/java/javase/15/jpackage/packaging-tool-user-guide.pdf
+Note: When working with the resourcesDir parameter, filenames must match the project name,
+following the format laid out in jpackage docs: https://docs.oracle.com/en/java/javase/15/jpackage/packaging-tool-user-guide.pdf
