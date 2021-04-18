@@ -2,7 +2,9 @@ package com.xcporter.jpkg.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 
 /**
  * ExecutableJar task must be configured *after* Classes task
@@ -12,11 +14,14 @@ import org.gradle.api.tasks.TaskAction
 open class ExecJarConfigure : DefaultTask() {
     init {
         group = "jpkg"
-        dependsOn("classes")
         dependsOn("gitVersion")
+        dependsOn("classes")
     }
 
     val java = project.convention.getPlugin(JavaPluginConvention::class.java)
+
+    @InputFiles
+    fun getClassFiles() : Array<out File>? = project.file(project.buildDir.absolutePath + "/classes").listFiles()
 
     @TaskAction
     fun configure () {

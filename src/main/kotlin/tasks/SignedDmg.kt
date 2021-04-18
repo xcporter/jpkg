@@ -1,9 +1,10 @@
 package com.xcporter.jpkg.tasks
 
-import com.xcporter.jpkg.CmdBuilder.buildCodesignCommand
-import com.xcporter.jpkg.CmdBuilder.buildJpackageImageCommand
+import com.xcporter.jpkg.CmdBuilder.buildCodesign
+import com.xcporter.jpkg.CmdBuilder.buildJpackageImage
 import com.xcporter.jpkg.CmdBuilder.execute
 import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
 
 open class SignedDmg : DefaultTask() {
@@ -13,13 +14,16 @@ open class SignedDmg : DefaultTask() {
         dependsOn("signedAppImage")
     }
 
+    @InputFiles
+    fun getAppFile() = project.file(project.buildDir.absolutePath + "/jpkg/mac").listFiles()?.filter { it.name.contains(".app") }
+
     @TaskAction
     fun action () {
-        project.execute(buildJpackageImageCommand(project))
+        project.execute(buildJpackageImage(project))
         project.file(project.buildDir.path + "/jpkg/mac/").listFiles()
             ?.firstOrNull { it.extension == "dmg" }
             ?.let {
-                project.execute(buildCodesignCommand(it.path, project))
+                project.execute(buildCodesign(it.path, project))
             }
 
     }
