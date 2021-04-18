@@ -1,6 +1,7 @@
 package com.xcporter.jpkg
 
 import org.gradle.api.Project
+import java.util.*
 
 sealed class PlatformConfiguration(val project: Project) {
     var type: JpkgExtension.DistType? = null
@@ -25,6 +26,7 @@ sealed class PlatformConfiguration(val project: Project) {
         var bundleName: String? = null
         var userName: String? = null
         var password: String? = null
+        var notarization : UUID? = null
     }
 
     class Linux(project: Project) : PlatformConfiguration(project) {

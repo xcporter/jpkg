@@ -44,6 +44,7 @@ open class JpkgExtension(val project: Project) {
             mac.icon?.let { icon = it }
             mac.fileAssociations?.let { fileAssociations = it }
             mac.resourceDir?.let { resourceDir = it }
+            mac.bundleName = "${project.group}.${project.name.toLowerCase().replace(" ", "")}"
         }
     }
 

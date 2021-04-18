@@ -6,13 +6,17 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 
 object CmdBuilder {
-    fun Project.execute(cmd: List<String>) {
-        this.exec {
-            it.commandLine = cmd
-            it.standardOutput = System.out
-            it.errorOutput = System.err
+    fun Project.execute(cmd: List<String>) : String {
+        val ext = project.jpkgExtension()
+        if (ext.verbose || ext.deeplyVerbose) println(cmd.joinToString(" "))
+        return ByteArrayOutputStream().use { os ->
+            this.exec {
+                it.commandLine = cmd
+                it.standardOutput = os
+                it.errorOutput = os
+            }
+            os.toString()
         }
-        println(cmd.joinToString(" "))
     }
 
     fun getJpackage() : String {
@@ -27,7 +31,7 @@ object CmdBuilder {
 
     fun checkJpackage() = try { getJpackage(); true} catch(e: Throwable) { println(e); false }
 
-    fun buildCodesignCommand(path: String, project: Project) : List<String> {
+    fun buildCodesign(path: String, project: Project) : List<String> {
         val acc = mutableListOf<String>()
         val ext = project.jpkgExtension()
         acc.addAll(
@@ -46,8 +50,55 @@ object CmdBuilder {
         return acc
     }
 
-    fun buildJpackageImageCommand(project: Project) : List<String> {
-        val ext = project.extensions.getByType(JpkgExtension::class.java)
+    fun buildNotarizeSubmit(path: String, project: Project) : List<String> {
+        val ext = project.jpkgExtension()
+
+        return mutableListOf(
+            "xcrun",
+            "altool",
+            "--notarize-app",
+            "--primary-bundle-id",
+            ext.mac.bundleName ?: "",
+            "--username",
+            ext.mac.userName ?: "",
+            "--password",
+            ext.mac.password ?: "",
+            "--file",
+            path
+        ).apply {
+            if (ext.deeplyVerbose) this.add("--verbose")
+        }
+    }
+
+    fun buildNotarizeStatus(project: Project) : List<String> {
+        val ext = project.jpkgExtension()
+
+        return mutableListOf(
+            "xcrun",
+            "altool",
+            "--notarization-info",
+            ext.mac.notarization.toString(),
+            "--username",
+            ext.mac.userName ?: "",
+            "--password",
+            ext.mac.password ?: ""
+        ).apply {
+            if (ext.deeplyVerbose) this.add("--verbose")
+        }
+    }
+
+    fun buildStaple(path: String, project: Project) : List<String> = mutableListOf(
+            "xcrun",
+            "stapler",
+            "staple",
+            path
+        ).apply {
+            if (project.jpkgExtension().deeplyVerbose) this.add("--verbose")
+        }
+
+
+    fun buildJpackageImage(project: Project) : List<String> {
+        val ext = project.jpkgExtension()
         val acc = mutableListOf<String>(getJpackage())
         with (acc) {
             ext.packageName?.let {
@@ -84,7 +135,7 @@ object CmdBuilder {
         return acc
     }
 
-    fun buildJpackageJarCommand(project: Project) : List<String> {
+    fun buildJpackageJar(project: Project) : List<String> {
         val ext = project.extensions.getByType(JpkgExtension::class.java)
         val acc = mutableListOf<String>(getJpackage())
 //        Mandatory config
@@ -134,10 +185,10 @@ object CmdBuilder {
             OperatingSystem.current().isMacOsX -> {
                 ext.mac.name?.let {
                     acc.add(JPackageArgs.Mac.NAME.arg)
-                    acc.add("$it")
+                    acc.add(it)
                 } ?: ext.packageName?.let {
                     acc.add(JPackageArgs.Mac.NAME.arg)
-                    acc.add("$it")
+                    acc.add(it)
                 }
             }
             OperatingSystem.current().isWindows -> {

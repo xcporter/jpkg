@@ -8,9 +8,9 @@ import org.gradle.api.plugins.ApplicationPlugin
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.internal.os.OperatingSystem
 import java.io.File
 
-// todo build all task
 class JpkgPlugin : Plugin<Project> {
     override fun apply(proj: Project) {
         proj.plugins.apply(JavaPlugin::class.java)
@@ -59,6 +59,8 @@ class JpkgPlugin : Plugin<Project> {
                         sub.tasks.register("signArchive", SignArchive::class.java)
                         sub.tasks.register("signedAppImage", SignedAppImage::class.java)
                         sub.tasks.register("signedDmg", SignedDmg::class.java)
+                        if (OperatingSystem.current().isMacOsX)
+                            sub.tasks.register("notarize", Notarize::class.java)
                     }
                 }
             }
@@ -74,6 +76,8 @@ class JpkgPlugin : Plugin<Project> {
                     main.tasks.register("signArchive", SignArchive::class.java)
                     main.tasks.register("signedAppImage", SignedAppImage::class.java)
                     main.tasks.register("signedDmg", SignedDmg::class.java)
+                    if (OperatingSystem.current().isMacOsX)
+                        main.tasks.register("notarize", Notarize::class.java)
                 }
             }
         }
