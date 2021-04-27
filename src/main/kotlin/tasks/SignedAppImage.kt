@@ -6,7 +6,6 @@ import com.xcporter.jpkg.CmdBuilder.execute
 import com.xcporter.jpkg.JpkgExtension
 import com.xcporter.jpkg.jpkgExtension
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
@@ -15,9 +14,6 @@ open class SignedAppImage : DefaultTask() {
         group = "jpkg"
         dependsOn("signArchive")
     }
-
-    @InputFile
-    fun getJarFile() : File? = project.file(project.buildDir.absolutePath + "/jpkg/jar").listFiles()?.firstOrNull()
 
     @TaskAction
     fun action() {

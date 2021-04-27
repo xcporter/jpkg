@@ -3,22 +3,23 @@ package com.xcporter.jpkg.tasks
 import com.xcporter.jpkg.CmdBuilder.buildCodesign
 import com.xcporter.jpkg.CmdBuilder.execute
 import com.xcporter.jpkg.ZipUtility
-import com.xcporter.jpkg.jpkgExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.ApplicationPluginConvention
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
 open class SignArchive : DefaultTask() {
-    val ext = project.jpkgExtension()
-
+    @Internal
     val java = project.convention.getPlugin(JavaPluginConvention::class.java)
+    @Internal
     val app = project.convention.getPlugin(ApplicationPluginConvention::class.java)
 
     init {
         group = "jpkg"
+        dependsOn("executableJar")
     }
 
     @InputFile

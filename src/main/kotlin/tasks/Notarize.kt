@@ -6,12 +6,15 @@ import com.xcporter.jpkg.JpkgExtension
 import com.xcporter.jpkg.jpkgExtension
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 import java.util.*
 
 open class Notarize : DefaultTask() {
+    @Internal
     var target : File? = null
+    @Internal
     val ext = project.jpkgExtension()
 
     init {

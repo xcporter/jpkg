@@ -3,6 +3,7 @@ package com.xcporter.jpkg.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import java.io.File
 
@@ -18,6 +19,7 @@ open class ExecJarConfigure : DefaultTask() {
         dependsOn("classes")
     }
 
+    @Internal
     val java = project.convention.getPlugin(JavaPluginConvention::class.java)
 
     @InputFiles

@@ -4,7 +4,6 @@ import com.xcporter.jpkg.CmdBuilder.buildCodesign
 import com.xcporter.jpkg.CmdBuilder.buildJpackageImage
 import com.xcporter.jpkg.CmdBuilder.execute
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.TaskAction
 
 open class SignedDmg : DefaultTask() {
@@ -13,9 +12,6 @@ open class SignedDmg : DefaultTask() {
         group = "jpkg"
         dependsOn("signedAppImage")
     }
-
-    @InputFiles
-    fun getAppFile() = project.file(project.buildDir.absolutePath + "/jpkg/mac").listFiles()?.filter { it.name.contains(".app") }
 
     @TaskAction
     fun action () {
