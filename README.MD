@@ -1,5 +1,5 @@
 # JPKG
-> Warning: This project is thoroughly tested , use at your own risk
+> Warning: This project is not thoroughly tested, use at your own risk
 
 ### Gradle plugin for creating executable distributions
 
@@ -128,5 +128,5 @@ jpkg {
 }
 ```
 
-Note: When working with the resourcesDir parameter, filenames must match the project name,
+Note: When working with the `resourcesDir` parameter, perhaps for the purpose of customizing a mac disk image,  filenames must match the project name,
 following the format laid out in jpackage docs: https://docs.oracle.com/en/java/javase/15/jpackage/packaging-tool-user-guide.pdf
