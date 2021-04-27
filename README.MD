@@ -11,7 +11,7 @@
 
 ```groovy
 plugins {
-    id 'com.xcporter.jpkg' version '0.0.4-beta'
+    id 'com.xcporter.jpkg' version '0.0.6'
 }
 ```
 
