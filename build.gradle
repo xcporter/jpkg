@@ -4,10 +4,11 @@ plugins {
     id 'maven-publish'
     id "com.jfrog.bintray" version "1.8.5"
     id 'com.gradle.plugin-publish' version '0.12.0'
+    id 'com.xcporter.metaview' version '0.0.1'
 }
 
 group 'com.xcporter'
-version "0.0.6"
+version "0.0.7"
 
 repositories {
     mavenCentral()
@@ -30,7 +31,47 @@ gradlePlugin {
     }
 }
 
-//jpkg {
-//    mainClass = "Test"
-//}
+pluginBundle {
+    website = 'https://github.com/xcporter/jpkg'
+    vcsUrl = 'https://github.com/xcporter/jpkg'
+    tags = ['jpkg', 'jar', 'farJar', 'jpackage', 'codesign', 'desktop', 'package', 'executable']
+}
+
+publishing {
+    publications {
+        JPKG(MavenPublication) {
+            from components.java
+            groupId 'com.xcporter'
+            artifactId 'jpkg'
+        }
+    }
+}
+
+bintray {
+    user = "xcporter"
+    key = "245fc684da587e21e6e149acd195c4bdffe7ad10"
+    publications = ['JPKG']
+    pkg {
+        repo = "maven"
+        name = "jpkg"
+        userOrg = "xcporter"
+        licenses = ['MIT']
+        vcsUrl = 'https://github.com/xcporter/jpkg.git'
+        version {
+            name = '0.0.5-rc'
+            desc = 'Lightweight packaging plugin for gradle and JVM'
+            released  = new Date()
+            vcsTag = '0.0.1-beta'
+        }
+    }
+}
+
+generateUml {
+    classTree {
+        ignoreDelegates = ["DefaultTask"]
+        splitDelegates = ["Plugin"]
+        style = ["skinparam BackgroundColor LightBlue"]
+    }
+}
+
 

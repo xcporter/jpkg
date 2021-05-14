@@ -48,6 +48,18 @@ open class JpkgExtension(val project: Project) {
         }
     }
 
+    fun mac(op: PlatformConfiguration.Mac.()->Unit) {
+        if (OperatingSystem.current().isMacOsX) {
+            mac.apply(op)
+            mac.type?.let { type = it } ?: run { type = DistType.DMG }
+            destination = project.file(project.buildDir.absolutePath + "/jpkg/mac").absolutePath
+            mac.icon?.let { icon = it }
+            mac.fileAssociations?.let { fileAssociations = it }
+            mac.resourceDir?.let { resourceDir = it }
+            mac.bundleName = "${project.group}.${project.name.toLowerCase().replace(" ", "")}"
+        }
+    }
+
     fun windows(op: Closure<Unit>) {
         if (OperatingSystem.current().isWindows) {
             op.apply {
@@ -63,6 +75,17 @@ open class JpkgExtension(val project: Project) {
         }
     }
 
+    fun windows(op: PlatformConfiguration.Windows.()->Unit) {
+        if (OperatingSystem.current().isWindows) {
+            win.apply(op)
+            win.type?.let { type = it } ?: run { type = DistType.MSI }
+            destination = project.file(project.buildDir.absolutePath + "/jpkg/win").absolutePath
+            win.icon?.let { icon = it }
+            win.fileAssociations?.let { fileAssociations = it }
+            win.resourceDir?.let { resourceDir = it }
+        }
+    }
+
     fun linux(op: Closure<Unit>) {
         if (OperatingSystem.current().isLinux) {
             op.apply {
@@ -70,6 +93,17 @@ open class JpkgExtension(val project: Project) {
                 delegate = linux
                 call()
             }
+            linux.type?.let { type = it } ?: run { type = DistType.DEB }
+            destination = project.file(project.buildDir.absolutePath + "/jpkg/linux").absolutePath
+            linux.icon?.let { icon = it }
+            linux.fileAssociations?.let { fileAssociations = it }
+            linux.resourceDir?.let { resourceDir = it }
+        }
+    }
+
+    fun linux(op: PlatformConfiguration.Linux.()->Unit) {
+        if (OperatingSystem.current().isLinux) {
+            linux.apply(op)
             linux.type?.let { type = it } ?: run { type = DistType.DEB }
             destination = project.file(project.buildDir.absolutePath + "/jpkg/linux").absolutePath
             linux.icon?.let { icon = it }
