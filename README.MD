@@ -77,6 +77,8 @@ jpkg {
     vendor = "Your Name"
     copyright = "2021"
     description = "Your App Description"
+    
+    runtimeImage = "path/to/custom/jre"
 
 //    global menu-group; applies only to windows and linux
     menuGroup = "Your Group"

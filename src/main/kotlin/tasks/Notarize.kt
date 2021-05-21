@@ -34,7 +34,7 @@ open class Notarize : DefaultTask() {
     }
 
     @InputFiles
-    fun getInputFiles(): Array<File>? = project.file(project.buildDir.absolutePath + "/jpkg/mac").listFiles()
+    fun getInputFiles(): Array<File>? = project.file(project.buildDir.path + "/jpkg/mac").listFiles()
 
     @TaskAction
     fun notarize() {
@@ -42,7 +42,11 @@ open class Notarize : DefaultTask() {
         var attempts = 0
         println("[Notary] uploading...")
         submit()?.let {
-            ext.mac.notarization = UUID.fromString(it.split('=')[1].trim())
+            Regex("([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})").find(it)?.groupValues?.firstOrNull()
+                ?.let { parsed ->
+                    ext.mac.notarization = UUID.fromString(parsed)
+                }
+
             println("[Notary] Package successfully uploaded: ${ext.mac.notarization}")
         }
         while(retry) {
@@ -76,8 +80,8 @@ open class Notarize : DefaultTask() {
         return target?.let {
             try {
                 project.execute(CmdBuilder.buildNotarizeSubmit(it.path, project))
-            } catch(e: Throwable) { e.message }
-        } ?: null.also { println("[Notary] Warning: Target file not found; will not be notarized") }
+            } catch(e: Throwable) { println(e.message); e.message }
+        }.also {println(it)} ?: null.also { println("[Notary] Warning: Target file not found; will not be notarized") }
     }
 
     fun check() : String? {

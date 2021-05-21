@@ -13,6 +13,7 @@ enum class JPackageArgs(val arg: String) {
     INPUT("--input"),
     MAIN_JAR("--main-jar"),
     FILE_ASSOCIATIONS("--file-associations"),
+    RUNTIME_IMAGE("--runtime-image"),
     RESOURCE_DIR("--resource-dir");
 
     enum class Mac(val arg: String) {

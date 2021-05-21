@@ -144,7 +144,7 @@ object CmdBuilder {
                 JPackageArgs.TYPE.arg, ext.type!!.arg,
                 JPackageArgs.VERSION.arg, (ext.appVersion ?: project.version as String),
                 JPackageArgs.INPUT.arg, project.file(project.buildDir.absolutePath + "/jpkg/jar").absolutePath,
-                JPackageArgs.MAIN_JAR.arg, project.file(project.buildDir.absolutePath + "/jpkg/jar").listFiles()?.first()?.name ?: "",
+                JPackageArgs.MAIN_JAR.arg, project.file(project.buildDir.absolutePath + "/jpkg/jar").listFiles()?.first { it.name.contains("jar") }?.name ?: "",
                 JPackageArgs.DESTINATION.arg, ext.destination!!
             )
         )
@@ -172,6 +172,10 @@ object CmdBuilder {
             }
             ext.fileAssociations?.let {
                 add(JPackageArgs.FILE_ASSOCIATIONS.arg)
+                add(it)
+            }
+            ext.runtimeImage?.let {
+                add(JPackageArgs.RUNTIME_IMAGE.arg)
                 add(it)
             }
             ext.resourceDir?.let {
